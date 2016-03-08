@@ -38,6 +38,7 @@ public:
       }
       iter++;
     }
+    out_ << "\n";
   }
 
   void operator()(std::string const &src) { (*this)(src.cbegin(), src.cend()); }
