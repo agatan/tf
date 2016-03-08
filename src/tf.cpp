@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iterator>
 #include <string>
 
 class formatter {
@@ -14,18 +15,18 @@ public:
       switch (*iter) {
       case '<':
         out_ << "<\n";
-        depth_++;
         indent();
+        show_indent();
         break;
       case '>':
         out_ << "\n";
-        depth_--;
-        indent();
+        dedent();
+        show_indent();
         out_ << '>';
         break;
       case ',':
         out_ << ",\n";
-        indent();
+        show_indent();
         break;
       case ' ':
       case '\t':
@@ -48,19 +49,30 @@ private:
   int depth_;
   int indent_;
 
-  void indent() const { out_ << std::string(depth_ * indent_, ' '); }
+  void show_indent() const { out_ << std::string(depth_ * indent_, ' '); }
+
+  void indent() { depth_++; }
+
+  void dedent() {
+    depth_--;
+    if (depth_ < 0) {
+      invalid_input();
+    }
+  }
+
+  [[noreturn]] void invalid_input() {
+    std::cerr << "Input type is not a valid C++ type." << std::endl;
+    std::exit(1);
+  }
 };
 
 int main() {
-  std::string src;
-  std::string line;
-  while (std::getline(std::cin, line)) {
-    src += line + '\n';
-  }
+  std::istream_iterator<char> iter(std::cin);
+  std::istream_iterator<char> end;
 
   formatter f;
 
-  f(src);
+  f(iter, end);
 
   return 0;
 }
