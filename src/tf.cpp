@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iterator>
 #include <string>
+#include <cctype>
 
 class formatter {
 public:
@@ -12,32 +13,31 @@ public:
 
   template <typename Iter> void operator()(Iter iter, Iter const end) {
     while (iter != end) {
-      switch (*iter) {
+      auto c = *iter;
+      iter++;
+      switch (c) {
       case '<':
         out_ << "<\n";
+        skip_whitespace(iter, end);
         indent();
         show_indent();
         break;
       case '>':
         out_ << "\n";
+        skip_whitespace(iter, end);
         dedent();
         show_indent();
         out_ << '>';
         break;
       case ',':
         out_ << ",\n";
+        skip_whitespace(iter, end);
         show_indent();
         break;
-      case ' ':
-      case '\t':
-      case '\n':
-      case '\r':
-        break;
       default:
-        out_ << *iter;
+        out_ << c;
         break;
       }
-      iter++;
     }
     out_ << "\n";
   }
@@ -60,6 +60,15 @@ private:
     }
   }
 
+  template <typename Iter> void skip_whitespace(Iter &iter, Iter const &end) {
+    while (iter != end) {
+      if (!std::isblank(*iter)) {
+        break;
+      }
+      iter++;
+    }
+  }
+
   [[noreturn]] void invalid_input() {
     std::cerr << "Input type is not a valid C++ type." << std::endl;
     std::exit(1);
@@ -67,7 +76,7 @@ private:
 };
 
 int main() {
-  std::istream_iterator<char> iter(std::cin);
+  std::istream_iterator<char> iter(std::cin >> std::noskipws);
   std::istream_iterator<char> end;
 
   formatter f;
